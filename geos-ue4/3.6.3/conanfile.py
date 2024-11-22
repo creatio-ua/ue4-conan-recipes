@@ -10,44 +10,47 @@ class GeosUe4Conan(ConanFile):
     settings = "os", "compiler", "build_type", "arch"
     generators = "cmake"
     requires = ("libcxx/ue4@adamrehn/profile")
-    
+
     def cmake_flags(self):
         return [
             "-DGEOS_BUILD_STATIC=OFF",
             "-DGEOS_BUILD_SHARED=ON",
-            "-DGEOS_ENABLE_TESTS=OFF"
+            "-DGEOS_ENABLE_TESTS=OFF",
+            "-DCMAKE_SHARED_LINKER_FLAGS=---link -lpthread" # something changed from 4.27 to 5.0 so that libgeos isn't linked
+                                                            # to phtread automagically anymore, causes undefined references for gdal configure
+
         ]
-    
+
     def source(self):
-        
+
         # Clone the source code
         self.run("git clone --progress --depth=1 https://github.com/libgeos/geos -b {}".format(self.version))
-        
+
         # Prevent CMake from creating .so files with version suffixes under Unix platforms
         tools.replace_in_file("geos/src/CMakeLists.txt", "VERSION ${VERSION}", "")
         tools.replace_in_file("geos/capi/CMakeLists.txt", "VERSION ${CAPI_VERSION}", "")
         tools.replace_in_file("geos/capi/CMakeLists.txt", "SOVERSION ${CAPI_SOVERSION}", "")
-    
+
     def build(self):
-        
+
         # Enable compiler interposition under Linux to enforce the correct flags for libc++
         from libcxx import LibCxx
         LibCxx.set_vars(self)
-        
+
         # Build GEOS
         with tools.environment_append({"CI": "1"}):
             cmake = CMake(self)
             cmake.configure(source_folder="geos", args=self.cmake_flags())
             cmake.build()
             cmake.install()
-        
+
         # We need to post-process `geos-config` on platforms where it is generated
         geosConfig = os.path.join(self.package_folder, "bin", "geos-config")
         if os.path.exists(geosConfig):
-            
+
             # Allow the script to be written to
             os.chmod(geosConfig, 0o777)
-            
+
             # Patch the script to remove the hardcoded paths to the local Conan cache
             script = tools.load(geosConfig)
             script = "\n".join([
@@ -58,6 +61,6 @@ class GeosUe4Conan(ConanFile):
                 "\n"
             ]) + script[ script.index("usage()") : ]
             tools.save(geosConfig, script)
-    
+
     def package_info(self):
         self.cpp_info.libs = tools.collect_libs(self)

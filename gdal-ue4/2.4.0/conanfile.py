@@ -21,11 +21,14 @@ class GdalUe4Conan(ConanFile):
             tools.replace_in_file(filename, search, replace)
     
     def requirements(self):
+        self.requires("libsqlite3-ue4/3.46.0@adamrehn/{}".format(self.channel))
         self.requires("geos-ue4/3.6.3@adamrehn/{}".format(self.channel))
         self.requires("proj-ue4/4.9.3@adamrehn/{}".format(self.channel))
         self.requires("libcurl/ue4@adamrehn/{}".format(self.channel))
         self.requires("UElibPNG/ue4@adamrehn/{}".format(self.channel))
         self.requires("zlib/ue4@adamrehn/{}".format(self.channel))
+        self.requires("OpenSSL/ue4@adamrehn/{}".format(self.channel))
+        self.requires("nghttp2/ue4@adamrehn/{}".format(self.channel))
     
     def configure_flags(self):
         
@@ -94,7 +97,7 @@ class GdalUe4Conan(ConanFile):
             "--without-curl",
             "--without-xml2",
             "--without-spatialite",
-            "--without-sqlite3",
+            "--with-sqlite3={}".format(self.deps_cpp_info["libsqlite3-ue4"].rootpath),
             "--without-pcre",
             "--without-idb",
             "--without-sde",
@@ -140,6 +143,7 @@ class GdalUe4Conan(ConanFile):
         png = self.deps_cpp_info["UElibPNG"]
         proj = self.deps_cpp_info["proj-ue4"]
         zlib = self.deps_cpp_info["zlib"]
+        sqlite = self.deps_cpp_info["libsqlite3-ue4"]
         
         # Disable unsupported external dependencies and point GDAL to the include directories and library locations of our libraries
         self._replace_multiple("nmake.opt", [
@@ -181,8 +185,14 @@ class GdalUe4Conan(ConanFile):
             # zlib
             ["\n#ZLIB_EXTERNAL_LIB = 1", "\nZLIB_EXTERNAL_LIB = 1"],
             ["\n#ZLIB_INC = -IC:\projects\zlib", "\nZLIB_INC = -I{}".format(zlib.include_paths[0])],
-            ["\n#ZLIB_LIB = C:\projects\lib\Release\zlib.lib", "\nZLIB_LIB = {}".format(Utility.resolve_file(zlib.lib_paths[0], zlib.libs[0]))]
+            ["\n#ZLIB_LIB = C:\projects\lib\Release\zlib.lib", "\nZLIB_LIB = {}".format(Utility.resolve_file(zlib.lib_paths[0], zlib.libs[0]))],
             
+            # sqlite
+            ["\n# SQLite Libraries", "\n# SQLite Libraries\nWITH_SQLITE3=ON"],
+            # Uncomment if libSqlite was built with SQLITE_HAS_COLUMN_METADATA=yes
+            #["\n#SQLITE_HAS_COLUMN_METADATA=yes", "\nSQLITE_HAS_COLUMN_METADATA=yes"],
+            ["\n#SQLITE_INC=-IN:\pkg\sqlite-win32", "\nSQLITE_INC = -I{}".format(sqlite.include_paths[0])],
+            ["\n#SQLITE_LIB=N:\pkg\sqlite-win32\sqlite3_i.lib", "\nSQLITE_LIB = {}".format(Utility.resolve_file(sqlite.lib_paths[0], sqlite.libs[0]))]
         ])
         
         # Prevent the GDAL command-line tools from being built (since they don't work nicely with a static build) but ensure their library functions are still built
