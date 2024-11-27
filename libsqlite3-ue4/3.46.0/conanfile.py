@@ -21,12 +21,33 @@ class libSqlite3Ue4Conan(ConanFile):
         #tc.variables["SQLITE_ENABLE_COLUMN_METADATA"] = self.options.enable_column_metadata
         #tc.variables["SQLITE_ENABLE_JSON1"] = self.options.enable_json1
         #tc.variables["SQLITE_ENABLE_RTCC"] = self.options.enable_rtcc
-  
+ 
+    def replace_with_re(self, filePath, pattern, replacement):
+        # Ensure the file exists
+        if not os.path.exists(filePath):
+            raise FileNotFoundError(f"{filePath} not found!")
+
+        # Read and modify the file content using regex
+        with open(filePath, "r", encoding="utf-8") as file:
+            content = file.read()
+
+        # Replace the pattern in the content
+        new_content = re.sub(pattern, replacement, content)
+
+        # Write the modified content back to the file
+        with open(filePath, "w", encoding="utf-8") as file:
+            file.write(new_content)
+
 
     def build(self):
-        tools.replace_in_file("libsqlite3/CMakeLists.txt", 
+        #tools.replace_in_file("libsqlite3/CMakeLists.txt", 
+        self.replace_with_re("libsqlite3/CMakeLists.txt", 
             re.compile(r"# Linking\s*target_link_libraries\(sqlite3\)", re.IGNORECASE),
                         """
+if (MSVC)
+    add_compile_options(/wd4711) # Suppress C4711 warning
+endif()
+                        
 file(GLOB HEADERS "*.h")
 install(TARGETS sqlite3 ARCHIVE DESTINATION lib LIBRARY DESTINATION lib RUNTIME DESTINATION bin)
 install(FILES ${HEADERS} DESTINATION include)
