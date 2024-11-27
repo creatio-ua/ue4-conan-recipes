@@ -1,6 +1,7 @@
 # from conans import ConanFile, CMake, tools
 from conans import ConanFile, CMake, tools
 import os
+import re
 
 class libSqlite3Ue4Conan(ConanFile):
     name = "libsqlite3-ue4"
@@ -23,8 +24,8 @@ class libSqlite3Ue4Conan(ConanFile):
   
 
     def build(self):
-        tools.replace_in_file("libsqlite3/CMakeLists.txt", """# Linking
-target_link_libraries(sqlite3)""",
+        tools.replace_in_file("libsqlite3/CMakeLists.txt", 
+            re.compile(r"# Linking\s*target_link_libraries\(sqlite3\)", re.IGNORECASE),
                         """
 file(GLOB HEADERS "*.h")
 install(TARGETS sqlite3 ARCHIVE DESTINATION lib LIBRARY DESTINATION lib RUNTIME DESTINATION bin)
