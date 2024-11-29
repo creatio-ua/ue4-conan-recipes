@@ -162,7 +162,9 @@ class GdalUe4Conan(ConanFile):
             ["\nMRF_SETTING=yes", "\n#MRF_SETTING=yes"],
             
             # PROJ
-            ["\n#PROJ_FLAGS = -DPROJ_STATIC -DPROJ_VERSION=4", "\nPROJ_FLAGS = -DPROJ_STATIC -DPROJ_VERSION=4"],
+            # Shared lib has been selected to prevent the linker errors with the UE's proj version
+            #["\n#PROJ_FLAGS = -DPROJ_STATIC -DPROJ_VERSION=4", "\nPROJ_FLAGS = -DPROJ_STATIC -DPROJ_VERSION=4"],
+            ["\n#PROJ_FLAGS = -DPROJ_STATIC -DPROJ_VERSION=4", "\nPROJ_FLAGS = -DPROJ_VERSION=4"],
             ["\n#PROJ_INCLUDE = -Id:\projects\proj.4\src", "\nPROJ_INCLUDE=-I{}".format(proj.include_paths[0])],
             ["\n#PROJ_LIBRARY = d:\projects\proj.4\src\proj_i.lib", "\nPROJ_LIBRARY={}".format(Utility.resolve_file(proj.lib_paths[0], proj.libs[0]))],
             
