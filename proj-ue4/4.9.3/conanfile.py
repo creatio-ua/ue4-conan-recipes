@@ -17,7 +17,7 @@ class ProjUe4Conan(ConanFile):
             "-DPROJ_LIB_SUBDIR=lib",
             "-DPROJ_INCLUDE_SUBDIR=include",
             "-DPROJ4_TESTS=OFF",
-            "-DBUILD_LIBPROJ_SHARED=ON",
+            "-DBUILD_LIBPROJ_SHARED=OFF",
             "-DBUILD_CS2CS=OFF",
             "-DBUILD_GEOD=OFF",
             "-DBUILD_NAD2BIN=OFF"
