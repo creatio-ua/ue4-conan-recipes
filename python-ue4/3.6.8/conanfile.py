@@ -8,7 +8,10 @@ class PythonUe4Conan(ConanFile):
     url = "https://github.com/adamrehn/ue4-conan-recipes/python-ue4"
     description = "CPython custom build for Unreal Engine 4"
     settings = "os", "compiler", "build_type", "arch"
-    requires = ("libcxx/ue4@adamrehn/profile")
+    generators = "cmake", "cmake_find_package"
+    requires = (
+        "cmake/3.24.2",
+        "libcxx/ue4@adamrehn/profile")
     
     def requirements(self):
         self.requires("OpenSSL/ue4@adamrehn/{}".format(self.channel))

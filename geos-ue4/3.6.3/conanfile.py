@@ -8,8 +8,10 @@ class GeosUe4Conan(ConanFile):
     url = "https://github.com/adamrehn/ue4-conan-recipes/geos-ue4"
     description = "GEOS custom build for Unreal Engine 4"
     settings = "os", "compiler", "build_type", "arch"
-    generators = "cmake"
-    requires = ("libcxx/ue4@adamrehn/profile")
+    generators = "cmake", "cmake_find_package"
+    requires = (
+        "cmake/3.24.2",
+        "libcxx/ue4@adamrehn/profile")
 
     def cmake_flags(self):
         return [

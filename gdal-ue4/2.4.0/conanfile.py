@@ -8,9 +8,10 @@ class GdalUe4Conan(ConanFile):
     url = "https://github.com/adamrehn/ue4-conan-recipes/gdal-ue4"
     description = "GDAL custom build for Unreal Engine 4"
     settings = "os", "compiler", "build_type", "arch"
-    generators = "cmake"
+    generators = "cmake", "cmake_find_package"
     short_paths = True
     requires = (
+        "cmake/3.24.2",
         "libcxx/ue4@adamrehn/profile",
         "ue4util/ue4@adamrehn/profile"
     )

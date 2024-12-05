@@ -8,10 +8,11 @@ class GrpcUe4Conan(ConanFile):
     url = "https://github.com/adamrehn/ue4-conan-recipes/grpc-ue4"
     description = "gRPC custom build for Unreal Engine 4"
     settings = "os", "compiler", "build_type", "arch"
-    generators = "cmake"
     short_paths = True
     exports = "*.py"
+    generators = "cmake", "cmake_find_package"
     requires = (
+        "cmake/3.24.2",
         "libcxx/ue4@adamrehn/profile",
         "ue4util/ue4@adamrehn/profile"
     )

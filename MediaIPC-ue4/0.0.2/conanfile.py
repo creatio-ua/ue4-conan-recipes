@@ -8,8 +8,9 @@ class MediaIPCUe4Conan(ConanFile):
     description = "libMediaIPC custom build for Unreal Engine 4"
     settings = "os", "compiler", "build_type", "arch"
     default_options = "boost:header_only=True"
-    generators = "cmake",
+    generators = "cmake", "cmake_find_package"
     requires = (
+        "cmake/3.24.2",
         "libcxx/ue4@adamrehn/profile",
         "boost/1.69.0"
     )

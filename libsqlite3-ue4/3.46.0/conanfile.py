@@ -10,7 +10,10 @@ class libSqlite3Ue4Conan(ConanFile):
     url = "https://github.com/adamrehn/ue4-conan-recipes/libsqlite3-ue4"
     description = "libSqlite3 custom build for Unreal Engine"
     settings = "os", "compiler", "build_type", "arch"
-    generators = "cmake"
+    generators = "cmake", "cmake_find_package"
+    requires = (
+        "cmake/3.24.2"
+        )
 
 
     def source(self):

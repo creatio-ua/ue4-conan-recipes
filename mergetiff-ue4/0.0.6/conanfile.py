@@ -6,7 +6,10 @@ class MergetiffUe4Conan(ConanFile):
     license = "MIT"
     url = "https://github.com/adamrehn/ue4-conan-recipes/mergetiff-ue4"
     description = "mergetiff header-only package for Unreal Engine 4"
-    generators = "cmake"
+    generators = "cmake", "cmake_find_package"
+    requires = (
+        "cmake/3.24.2"
+        )
     
     def source(self):
         self.run("git clone --progress --depth=1 https://github.com/adamrehn/mergetiff-cxx.git -b v{}".format(self.version))

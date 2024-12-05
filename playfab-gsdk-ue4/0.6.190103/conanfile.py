@@ -10,9 +10,10 @@ class PlayfabGSDKUe4Conan(ConanFile):
     settings = "os", "compiler", "build_type", "arch"
     options = {"shared": [True, False]}
     default_options = {"shared": False}
-    generators = "cmake"
     exports_sources = ("CMakeLists.txt")
+    generators = "cmake", "cmake_find_package"
     requires = (
+        "cmake/3.24.2",
         "libcxx/ue4@adamrehn/profile",
         "ue4util/ue4@adamrehn/profile"
     )
