@@ -146,7 +146,7 @@ class GdalUe4Conan(ConanFile):
             zlib.rootpath]
 
         return [
-            "-DCMAKE_PREFIX_PATH={}".format(";".join(paths))
+            "-DCMAKE_PREFIX_PATH={}".format(";".join(paths)),
             "-DCURL_LIBRARY_RELEASE={}".format(Utility.resolve_file(curl.lib_paths[0], curl.libs[0])),
             "-DCURL_LIBRARY={}".format(Utility.resolve_file(curl.lib_paths[0], curl.libs[0])),
             "-DCURL_INCLUDE_DIR={}".format(curl.include_paths[0]),
