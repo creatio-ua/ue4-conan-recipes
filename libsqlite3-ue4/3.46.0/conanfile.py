@@ -43,7 +43,6 @@ class libSqlite3Ue4Conan(ConanFile):
 
 
     def build(self):
-        #tools.replace_in_file("libsqlite3/CMakeLists.txt", 
         self.replace_with_re("libsqlite3/CMakeLists.txt", 
             re.compile(r"# Linking\s*target_link_libraries\(sqlite3\)", re.IGNORECASE),
                         """

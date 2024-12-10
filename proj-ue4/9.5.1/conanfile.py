@@ -26,7 +26,7 @@ class ProjUe4Conan(ConanFile):
             sqlite.rootpath,
             tiff.rootpath]
         return [
-            "-DCMAKE_PREFIX_PATH={}".format(";".join(paths))
+            "-DCMAKE_PREFIX_PATH={}".format(";".join(paths)),
             "-DBUILD_TESTING=OFF",
             "-DBUILD_APPS=OFF",
             "-DCMAKE_BUILD_TYPE=Release", # TODO: Review this solution
