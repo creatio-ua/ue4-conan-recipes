@@ -47,6 +47,30 @@ class libSqlite3Ue4Conan(ConanFile):
         self.replace_with_re("libsqlite3/CMakeLists.txt", 
             re.compile(r"# Linking\s*target_link_libraries\(sqlite3\)", re.IGNORECASE),
                         """
+add_executable(sqlite sqlite3.c shell.c sqlite3.h sqlite3ext.h)
+
+add_definitions(-DSQLITE_ENABLE_RTREE)
+add_definitions(-DSQLITE_ENABLE_FTS4)
+add_definitions(-DSQLITE_ENABLE_FTS5)
+add_definitions(-DSQLITE_ENABLE_JSON1)
+add_definitions(-DSQLITE_ENABLE_RBU)
+add_definitions(-DSQLITE_ENABLE_STAT4)
+
+# Uncomment this for single-threaded variant (faster)
+#add_definitions(-DSQLITE_THREADSAFE=0)
+
+if(WIN32)
+  add_custom_command(TARGET sqlite POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:sqlite> ${CMAKE_BINARY_DIR}/sqlite3.exe
+    DEPENDS sqlite
+  )
+  install(FILES ${CMAKE_BINARY_DIR}/sqlite3.exe DESTINATION bin)
+else()
+  include(FindThreads)
+  target_link_libraries(sqlite m ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
+  install(TARGETS sqlite RUNTIME DESTINATION bin)
+endif()
+
 if (MSVC)
     add_compile_options(/wd4711) # Suppress C4711 warning
 endif()
