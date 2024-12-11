@@ -10,7 +10,7 @@ class ProjUe4Conan(ConanFile):
     settings = "os", "compiler", "build_type", "arch"
     generators = "cmake", "cmake_find_package"
     requires = (
-        "cmake/3.24.4",
+        "cmake/3.24.2",
         "libcxx/ue4@adamrehn/profile",
         "ue4util/ue4@adamrehn/profile"
         )
