@@ -1,5 +1,6 @@
 from conans import ConanFile, CMake, tools
 import os
+import string
 
 class ProjUe4Conan(ConanFile):
     name = "proj-ue4"
@@ -29,11 +30,10 @@ class ProjUe4Conan(ConanFile):
             "-DCMAKE_PREFIX_PATH={}".format(";".join(paths)),
             "-DBUILD_TESTING=OFF",
             "-DBUILD_APPS=OFF",
-            "-DCMAKE_BUILD_TYPE=Release", # TODO: Review this solution
             "-DBUILD_SHARED_LIBS=OFF",
         ]
         
-        
+
     def requirements(self):
         self.requires("libcurl/ue4@adamrehn/{}".format(self.channel))
         self.requires("libsqlite3-ue4/3.46.0@adamrehn/{}".format(self.channel))
@@ -43,7 +43,14 @@ class ProjUe4Conan(ConanFile):
     def source(self):
         # Clone the source code
         self.run("git clone --progress --depth=1 https://github.com/OSGeo/PROJ.git -b {}".format(self.version))
-    
+
+
+    def generate(self):
+        tools.replace_in_file(
+            "PROJ\\src\\lib_proj.cmake",
+            "target_compile_definitions(proj PRIVATE -DCURL_ENABLED)",
+            "target_compile_definitions(proj PRIVATE -DCURL_ENABLED -DCURL_STATICLIB)")
+
 
     def build(self):
         # Enable compiler interposition under Linux to enforce the correct flags for libc++

@@ -22,8 +22,7 @@ class libSqlite3Ue4Conan(ConanFile):
         # Uncomment if CMake variables need to have non-default values
         #tc.variables["BUILD_SHARED_LIBS"] = self.options.shared
         #tc.variables["SQLITE_ENABLE_COLUMN_METADATA"] = self.options.enable_column_metadata
-        #tc.variables["SQLITE_ENABLE_JSON1"] = self.options.enable_json1
-        #tc.variables["SQLITE_ENABLE_RTCC"] = self.options.enable_rtcc
+
  
     def replace_with_re(self, filePath, pattern, replacement):
         # Ensure the file exists
@@ -42,12 +41,19 @@ class libSqlite3Ue4Conan(ConanFile):
             file.write(new_content)
 
 
+    def cmake_flags(self):
+        return [
+            "-DBUILD_SHARED_LIBS=OFF",
+        ]
+
     def build(self):
+        tools.replace_in_file("libsqlite3/CMakeLists.txt",
+            "add_compile_options(-Wall)",
+            "add_compile_options(-w)")
         self.replace_with_re("libsqlite3/CMakeLists.txt", 
             re.compile(r"# Linking\s*target_link_libraries\(sqlite3\)", re.IGNORECASE),
                         """
 add_executable(sqlite sqlite3.c shell.c sqlite3.h sqlite3ext.h)
-
 add_definitions(-DSQLITE_ENABLE_RTREE)
 add_definitions(-DSQLITE_ENABLE_FTS4)
 add_definitions(-DSQLITE_ENABLE_FTS5)
@@ -69,10 +75,6 @@ else()
   target_link_libraries(sqlite m ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
   install(TARGETS sqlite RUNTIME DESTINATION bin)
 endif()
-
-if (MSVC)
-    add_compile_options(/wd4711) # Suppress C4711 warning
-endif()
                         
 file(GLOB HEADERS "*.h")
 install(TARGETS sqlite3 ARCHIVE DESTINATION lib LIBRARY DESTINATION lib RUNTIME DESTINATION bin)
@@ -86,7 +88,7 @@ target_link_libraries(sqlite3)
         
         # Uncomment if CMake variables need to have non-default values
         # cmake.configure(source_folder="libsqlite3", args=self.cmake_flags())
-        cmake.configure(source_folder="libsqlite3")
+        cmake.configure(source_folder="libsqlite3", args=self.cmake_flags())
         cmake.build()
 
 
