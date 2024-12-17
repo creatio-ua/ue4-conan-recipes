@@ -223,3 +223,10 @@ class GdalUe4Conan(ConanFile):
     def package_info(self):
         self.cpp_info.libs = tools.collect_libs(self)
         self.cpp_info.resdirs = ["data"]
+        if self.settings.os == "Windows":
+            sdk_dir = os.environ.get("WindowsSdkDir")
+            if sdk_dir:
+                wbemuuid_path = os.path.join(sdk_dir, "Lib", "um", "x64", "wbemuuid.lib")
+                self.cpp_info.exelinkflags.append(wbemuuid_path)
+            else:
+                self.cpp_info.system_libs.append("wbemuuid.lib")  # Fallback
