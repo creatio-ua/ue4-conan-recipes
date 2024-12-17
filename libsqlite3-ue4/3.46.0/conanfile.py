@@ -46,13 +46,13 @@ class libSqlite3Ue4Conan(ConanFile):
             "-DBUILD_SHARED_LIBS=OFF",
         ]
 
-    def build(self):
+    def generate(self):
         tools.replace_in_file("libsqlite3/CMakeLists.txt",
             "add_compile_options(-Wall)",
             "add_compile_options(-w)")
         self.replace_with_re("libsqlite3/CMakeLists.txt", 
             re.compile(r"# Linking\s*target_link_libraries\(sqlite3\)", re.IGNORECASE),
-                        """
+"""
 add_executable(sqlite sqlite3.c shell.c sqlite3.h sqlite3ext.h)
 add_definitions(-DSQLITE_ENABLE_RTREE)
 add_definitions(-DSQLITE_ENABLE_FTS4)
@@ -84,10 +84,11 @@ install(FILES ${HEADERS} DESTINATION include)
 target_link_libraries(sqlite3)
 """)
 
+
+    def build(self):
         cmake = CMake(self)
-        
-        # Uncomment if CMake variables need to have non-default values
-        # cmake.configure(source_folder="libsqlite3", args=self.cmake_flags())
+        cmake.definitions["CMAKE_CXX_FLAGS_RELEASE"] = "/MT /O2 /Ob2 /DNDEBUG"
+        cmake.definitions["CMAKE_CXX_FLAGS_DEBUG"] = "/MTd /Zi /Ob0 /Od /RTC1"
         cmake.configure(source_folder="libsqlite3", args=self.cmake_flags())
         cmake.build()
 
