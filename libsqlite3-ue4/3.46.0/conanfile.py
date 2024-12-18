@@ -87,8 +87,6 @@ target_link_libraries(sqlite3)
 
     def build(self):
         cmake = CMake(self)
-        cmake.definitions["CMAKE_CXX_FLAGS_RELEASE"] = "/MT /O2 /Ob2 /DNDEBUG"
-        cmake.definitions["CMAKE_CXX_FLAGS_DEBUG"] = "/MTd /Zi /Ob0 /Od /RTC1"
         cmake.configure(source_folder="libsqlite3", args=self.cmake_flags())
         cmake.build()
 
@@ -97,5 +95,12 @@ target_link_libraries(sqlite3)
         cmake = CMake(self)
         cmake.install()
         
-    def package_info(self):
+    def package_info(self): #libcmt
         self.cpp_info.libs = tools.collect_libs(self)
+        if self.settings.os == "Windows":
+            sdk_dir = os.environ.get("WindowsSdkDir")
+            if sdk_dir:
+                legacy_stdio_definitions_path = os.path.join(sdk_dir, "Lib", "um", "x64", "legacy_stdio_definitions.lib")
+                self.cpp_info.exelinkflags.append(legacy_stdio_definitions_path)
+            else:
+                self.cpp_info.system_libs.append("legacy_stdio_definitions.lib")  # Fallback
