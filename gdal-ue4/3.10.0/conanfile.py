@@ -32,6 +32,7 @@ class GdalUe4Conan(ConanFile):
         self.requires("zlib/ue4@adamrehn/{}".format(self.channel))
         self.requires("OpenSSL/ue4@adamrehn/{}".format(self.channel))
         self.requires("nghttp2/ue4@adamrehn/{}".format(self.channel))
+        self.requires("LibJpegTurbo/ue4@adamrehn/{}".format(self.channel))
     
     def configure_flags(self):
         
