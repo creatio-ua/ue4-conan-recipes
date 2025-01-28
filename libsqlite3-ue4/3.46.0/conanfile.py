@@ -18,10 +18,6 @@ class libSqlite3Ue4Conan(ConanFile):
 
     def source(self):
         self.run(f"git clone --branch v{self.version} --single-branch --progress --depth=1 https://github.com/creatio-ua/libsqlite3.git")
-        
-        # Uncomment if CMake variables need to have non-default values
-        #tc.variables["BUILD_SHARED_LIBS"] = self.options.shared
-        #tc.variables["SQLITE_ENABLE_COLUMN_METADATA"] = self.options.enable_column_metadata
 
  
     def replace_with_re(self, filePath, pattern, replacement):
@@ -43,10 +39,13 @@ class libSqlite3Ue4Conan(ConanFile):
 
     def cmake_flags(self):
         return [
-            "-DBUILD_SHARED_LIBS=OFF",
+            "-DBUILD_SHARED_LIBS=ON",
         ]
 
     def generate(self):
+        tools.replace_in_file("libsqlite3/CMakeLists.txt",
+            "STATIC",
+            "SHARED")
         tools.replace_in_file("libsqlite3/CMakeLists.txt",
             "add_compile_options(-Wall)",
             "add_compile_options(-w)")
@@ -54,31 +53,42 @@ class libSqlite3Ue4Conan(ConanFile):
             re.compile(r"# Linking\s*target_link_libraries\(sqlite3\)", re.IGNORECASE),
 """
 add_executable(sqlite sqlite3.c shell.c sqlite3.h sqlite3ext.h)
-add_definitions(-DSQLITE_ENABLE_RTREE)
-add_definitions(-DSQLITE_ENABLE_FTS4)
-add_definitions(-DSQLITE_ENABLE_FTS5)
-add_definitions(-DSQLITE_ENABLE_JSON1)
-add_definitions(-DSQLITE_ENABLE_RBU)
-add_definitions(-DSQLITE_ENABLE_STAT4)
-
-# Uncomment this for single-threaded variant (faster)
-#add_definitions(-DSQLITE_THREADSAFE=0)
+add_definitions(-DSQLITE_ENABLE_RTREE=ON)
+add_definitions(-DSQLITE_ENABLE_FTS4=ON)
+add_definitions(-DSQLITE_ENABLE_FTS5=ON)
+add_definitions(-DSQLITE_ENABLE_JSON1=ON)
+add_definitions(-DSQLITE_ENABLE_RBU=ON)
+add_definitions(-DSQLITE_ENABLE_STAT4=ON)
+add_definitions(-DSQLITE_ENABLE_COLUMN_METADATA=ON)
+add_definitions(-DSQLITE_DBCONFIG_ENABLE_LOAD_EXTENSION=ON)
+add_definitions(-DSQLITE_THREADSAFE=1)
 
 if(WIN32)
   add_custom_command(TARGET sqlite POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:sqlite> ${CMAKE_BINARY_DIR}/sqlite3.exe
-    DEPENDS sqlite
-  )
+    DEPENDS sqlite)
   install(FILES ${CMAKE_BINARY_DIR}/sqlite3.exe DESTINATION bin)
 else()
   include(FindThreads)
   target_link_libraries(sqlite m ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS})
   install(TARGETS sqlite RUNTIME DESTINATION bin)
 endif()
-                        
+       
+target_compile_definitions(sqlite3 PRIVATE "SQLITE_API=__declspec(dllexport)")
+       
 file(GLOB HEADERS "*.h")
-install(TARGETS sqlite3 ARCHIVE DESTINATION lib LIBRARY DESTINATION lib RUNTIME DESTINATION bin)
 install(FILES ${HEADERS} DESTINATION include)
+
+install(TARGETS sqlite3 ARCHIVE DESTINATION lib LIBRARY DESTINATION lib RUNTIME DESTINATION bin)
+
+#include(GenerateExportHeader)
+#generate_export_header(sqlite
+#  EXPORT_MACRO_NAME SQLITE_API
+#  EXPORT_FILE_NAME  sqlite3_export.h)
+
+#if(MSVC AND BUILD_SHARED_LIBS)
+#    install(FILES $<TARGET_PDB_FILE:sqlite3> DESTINATION lib)
+#endif()
 
 # Linking
 target_link_libraries(sqlite3)
@@ -97,6 +107,8 @@ target_link_libraries(sqlite3)
         
     def package_info(self): #libcmt
         self.cpp_info.libs = tools.collect_libs(self)
+        self.cpp_info.defines.append("SQLITE_API=__declspec(dllimport)")
+        
         if self.settings.os == "Windows":
             sdk_dir = os.environ.get("WindowsSdkDir")
             if sdk_dir:
