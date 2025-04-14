@@ -25,7 +25,7 @@ class GdalUe4Conan(ConanFile):
     def requirements(self):
         self.requires("libsqlite3-ue4/3.46.0@adamrehn/{}".format(self.channel))
         self.requires("LibTiff/ue4@adamrehn/{}".format(self.channel))
-        self.requires("geos-ue4/3.6.3@adamrehn/{}".format(self.channel))
+        self.requires("geos-ue4/3.13.1@adamrehn/{}".format(self.channel))
         self.requires("proj-ue4/9.5.1@adamrehn/{}".format(self.channel))
         self.requires("libcurl/ue4@adamrehn/{}".format(self.channel))
         self.requires("UElibPNG/ue4@adamrehn/{}".format(self.channel))
@@ -134,6 +134,7 @@ class GdalUe4Conan(ConanFile):
         tiff= self.deps_cpp_info["LibTiff"]
         png= self.deps_cpp_info["UElibPNG"]
         zlib= self.deps_cpp_info["zlib"]
+        geos = self.deps_cpp_info["geos-ue4"]
 
         os.environ["PROJ_DIR"] = proj.deps_cpp_info.rootpath
 
@@ -144,7 +145,8 @@ class GdalUe4Conan(ConanFile):
             proj.rootpath, 
             tiff.rootpath, 
             png.rootpath, 
-            zlib.rootpath]
+            zlib.rootpath,
+            geos.rootpath]
 
         return [
             "-DCMAKE_PREFIX_PATH={}".format(";".join(paths)),
@@ -157,6 +159,7 @@ class GdalUe4Conan(ConanFile):
             "-DBUILD_APPS=OFF",         #
             "-DBUILD_SHARED_LIBS=OFF",
             "-DBUILD_TESTING=OFF",
+            "-DGDAL_USE_GEOS=ON"
         ]
 
 
