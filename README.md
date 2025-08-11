@@ -1,12 +1,12 @@
-Conan recipes for UE4-compatible library packages
+Conan recipes for UE5-compatible library packages
 =================================================
 
-This repository contains Conan recipes for a variety of libraries to facilitate their use with Unreal Engine 4. The recipes make use of the infrastructure from [conan-ue4cli](https://github.com/adamrehn/conan-ue4cli) to provide compatibility with UE4-bundled third-party libraries and avoid symbol interposition issues, as well as ensuring everything is built against the UE4-bundled version of libc++ under Linux.
+This repository contains Conan recipes for a variety of libraries to facilitate their use with Unreal Engine 5. The recipes make use of the infrastructure from [conan-ue4cli](https://github.com/adamrehn/conan-ue4cli) to provide compatibility with UE5-bundled third-party libraries and avoid symbol interposition issues, as well as ensuring everything is built against the UE4-bundled version of libc++ under Linux.
 
 To build the packages, you will need the following:
 
-- Unreal Engine 4.19.0 or newer
-- Python 3.5 or newer
+- Unreal Engine 5.3.2 or newer
+- Python 3.11 or newer
 - [ue4cli](https://github.com/adamrehn/ue4cli) and [conan-ue4cli](https://github.com/adamrehn/conan-ue4cli)
 
 Starting from conan-ue4cli version 0.0.8, the recipes from this repository are automatically stored in the conan-ue4cli recipe cache and are available by default when building packages (unless the `--no-cache` flag is specified.)
