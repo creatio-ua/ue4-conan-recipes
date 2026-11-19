@@ -3,7 +3,7 @@ import os
 
 class GeosUe4Conan(ConanFile):
     name = "geos-ue4"
-    version = "3.6.3"
+    version = "3.13.1"
     license = "LGPL-2.1-or-later"
     url = "https://github.com/adamrehn/ue4-conan-recipes/geos-ue4"
     description = "GEOS custom build for Unreal Engine 4"
@@ -20,7 +20,6 @@ class GeosUe4Conan(ConanFile):
             "-DGEOS_ENABLE_TESTS=OFF",
             "-DCMAKE_SHARED_LINKER_FLAGS=---link -lpthread" # something changed from 4.27 to 5.0 so that libgeos isn't linked
                                                             # to phtread automagically anymore, causes undefined references for gdal configure
-
         ]
 
     def source(self):
@@ -29,9 +28,9 @@ class GeosUe4Conan(ConanFile):
         self.run("git clone --progress --depth=1 https://github.com/libgeos/geos -b {}".format(self.version))
 
         # Prevent CMake from creating .so files with version suffixes under Unix platforms
-        tools.replace_in_file("geos/src/CMakeLists.txt", "VERSION ${VERSION}", "")
-        tools.replace_in_file("geos/capi/CMakeLists.txt", "VERSION ${CAPI_VERSION}", "")
-        tools.replace_in_file("geos/capi/CMakeLists.txt", "SOVERSION ${CAPI_SOVERSION}", "")
+        #tools.replace_in_file("geos/src/CMakeLists.txt", "VERSION ${VERSION}", "")
+        #tools.replace_in_file("geos/capi/CMakeLists.txt", "VERSION ${CAPI_VERSION}", "")
+        #tools.replace_in_file("geos/capi/CMakeLists.txt", "SOVERSION ${CAPI_SOVERSION}", "")
 
     def build(self):
 

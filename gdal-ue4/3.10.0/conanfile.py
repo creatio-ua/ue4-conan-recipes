@@ -1,9 +1,10 @@
-from conans import AutoToolsBuildEnvironment, ConanFile, MSBuild, tools
+from conans import AutoToolsBuildEnvironment, ConanFile, tools, CMake
+
 import os
 
 class GdalUe4Conan(ConanFile):
     name = "gdal-ue4"
-    version = "2.4.0"
+    version = "3.10.0"
     license = "MIT"
     url = "https://github.com/adamrehn/ue4-conan-recipes/gdal-ue4"
     description = "GDAL custom build for Unreal Engine 4"
@@ -23,13 +24,15 @@ class GdalUe4Conan(ConanFile):
     
     def requirements(self):
         self.requires("libsqlite3-ue4/3.46.0@adamrehn/{}".format(self.channel))
-        self.requires("geos-ue4/3.6.3@adamrehn/{}".format(self.channel))
-        self.requires("proj-ue4/4.9.3@adamrehn/{}".format(self.channel))
+        self.requires("LibTiff/ue4@adamrehn/{}".format(self.channel))
+        self.requires("geos-ue4/3.13.1@adamrehn/{}".format(self.channel))
+        self.requires("proj-ue4/9.5.1@adamrehn/{}".format(self.channel))
         self.requires("libcurl/ue4@adamrehn/{}".format(self.channel))
         self.requires("UElibPNG/ue4@adamrehn/{}".format(self.channel))
         self.requires("zlib/ue4@adamrehn/{}".format(self.channel))
         self.requires("OpenSSL/ue4@adamrehn/{}".format(self.channel))
         self.requires("nghttp2/ue4@adamrehn/{}".format(self.channel))
+        self.requires("LibJpegTurbo/ue4@adamrehn/{}".format(self.channel))
     
     def configure_flags(self):
         
@@ -123,107 +126,63 @@ class GdalUe4Conan(ConanFile):
             "--with-geos={}".format(geosConfig)
         ]
     
+    def cmake_flags(self):
+        from ue4util import Utility
+        curl= self.deps_cpp_info["libcurl"]
+        sqlite = self.deps_cpp_info["libsqlite3-ue4"]
+        proj= self.deps_cpp_info["proj-ue4"]
+        tiff= self.deps_cpp_info["LibTiff"]
+        png= self.deps_cpp_info["UElibPNG"]
+        zlib= self.deps_cpp_info["zlib"]
+        geos = self.deps_cpp_info["geos-ue4"]
+
+        os.environ["PROJ_DIR"] = proj.deps_cpp_info.rootpath
+
+        self.options["zlib"].shared = False  # Use static zlib
+        paths = [
+            curl.rootpath, 
+            sqlite.rootpath,
+            proj.rootpath, 
+            tiff.rootpath, 
+            png.rootpath, 
+            zlib.rootpath,
+            geos.rootpath]
+
+        return [
+            "-DCMAKE_PREFIX_PATH={}".format(";".join(paths)),
+            "-DCURL_LIBRARY={}".format(Utility.resolve_file(curl.lib_paths[0], curl.libs[0])),
+            "-DCURL_INCLUDE_DIR={}".format(curl.include_paths[0]),
+            "-DGDAL_USE_CURL=ON",
+            "-DCURL_USE_STATIC_LIBS=ON",
+            "-DGDAL_USE_ZLIB=ON",
+            "-DGDAL_BUILD_APPS=OFF",    # Explicitly disable standalone apps
+            "-DBUILD_APPS=OFF",         #
+            "-DBUILD_SHARED_LIBS=OFF",
+            "-DBUILD_TESTING=OFF",
+            "-DGDAL_USE_GEOS=ON"
+        ]
+
+
     def source(self):
         self.run("git clone --progress --depth=1 https://github.com/OSGeo/gdal.git -b v{}".format(self.version))
     
+
     def build(self):
-        
-        # Build GDAL using Visual Studio under Windows and autotools under other platforms
-        with tools.chdir("./gdal/gdal"):
+        # Legacy: Build GDAL using CMake under Windows and autotools under other platforms
+        # The Unix build isn't tested
+        with tools.chdir("./gdal/"):
             if self.settings.os == "Windows":
                 self.build_windows()
             else:
                 self.build_unix()
     
     def build_windows(self):
+        cmake = CMake(self)
+        cmake.configure(source_folder="gdal", args=self.cmake_flags())
+        cmake.build()
         
-        # Retrieve the path details for PROJ, GEOS, curl, libpng and zlib
-        from ue4util import Utility
-        curl = self.deps_cpp_info["libcurl"]
-        geos = self.deps_cpp_info["geos-ue4"]
-        png = self.deps_cpp_info["UElibPNG"]
-        proj = self.deps_cpp_info["proj-ue4"]
-        zlib = self.deps_cpp_info["zlib"]
-        sqlite = self.deps_cpp_info["libsqlite3-ue4"]
-        
-        # Disable unsupported external dependencies and point GDAL to the include directories and library locations of our libraries
-        self._replace_multiple("nmake.opt", [
-            
-            # Set the installation path to our package folder
-            ["\nGDAL_HOME = \"C:\\warmerda\\bld\"", "\nGDAL_HOME = \"{}\"".format(self.package_folder)],
-            
-            # Disable building GDAL as a shared library
-            ["\nDLLBUILD=1", "\n#DLLBUILD=1"],
-            
-            # Disable formats for which we lack external dependencies
-            ["\nPAM_SETTING=-DPAM_ENABLED", "\n#PAM_SETTING=-DPAM_ENABLED"],
-            ["\nBSB_SUPPORTED = 1", "\n#BSB_SUPPORTED = 1"],
-            ["\nODBC_SUPPORTED = 1", "\n#ODBC_SUPPORTED = 1"],
-            ["\nGRIB_SETTING=yes", "\n#GRIB_SETTING=yes"],
-            ["\nMRF_SETTING=yes", "\n#MRF_SETTING=yes"],
-            
-            # PROJ
-            ["\n#PROJ_FLAGS = -DPROJ_STATIC -DPROJ_VERSION=4", "\nPROJ_FLAGS = -DPROJ_STATIC -DPROJ_VERSION=4"],
-            ["\n#PROJ_INCLUDE = -Id:\projects\proj.4\src", "\nPROJ_INCLUDE=-I{}".format(proj.include_paths[0])],
-            ["\n#PROJ_LIBRARY = d:\projects\proj.4\src\proj_i.lib", "\nPROJ_LIBRARY={}".format(Utility.resolve_file(proj.lib_paths[0], proj.libs[0]))],
-            
-            # GEOS
-            ["\n#GEOS_DIR=C:/warmerda/geos", "\nGEOS_DIR={}".format(geos.rootpath)],
-            ["\n#GEOS_CFLAGS = -I$(GEOS_DIR)/capi -I$(GEOS_DIR)/source/headers -DHAVE_GEOS", "\nGEOS_CFLAGS=-I{} -DHAVE_GEOS".format(geos.include_paths[0])],
-            ["\n#GEOS_LIB     = $(GEOS_DIR)/source/geos_c_i.lib", "\nGEOS_LIB={}".format(" ".join([Utility.resolve_file(geos.lib_paths[0], lib) for lib in geos.libs]))],
-            
-            # curl
-            ["\n#CURL_DIR=C:\curl-7.15.0", "\nCURL_DIR={}".format(curl.rootpath)],
-            ["\n#CURL_INC = -I$(CURL_DIR)/include", "\nCURL_INC = -I{}".format(curl.include_paths[0])],
-            ["\n#CURL_LIB = $(CURL_DIR)/libcurl.lib", "\nCURL_LIB = {}".format(Utility.resolve_file(curl.lib_paths[0], curl.libs[0]))],
-            ["\n#CURL_CFLAGS = -DCURL_STATICLIB", "\nCURL_CFLAGS = -DCURL_STATICLIB"],
-            
-            # libpng
-            ["\n#PNG_EXTERNAL_LIB = 1", "\nPNG_EXTERNAL_LIB = 1"],
-            ["\n#PNGDIR = c:/projects/libpng-1.0.8", "\nPNGDIR = {}".format(png.include_paths[0])],
-            ["\n#PNG_LIB = $(PNGDIR)/libpng.lib", "\nPNG_LIB = {}".format(Utility.resolve_file(png.lib_paths[0], png.libs[0]))],
-            
-            # zlib
-            ["\n#ZLIB_EXTERNAL_LIB = 1", "\nZLIB_EXTERNAL_LIB = 1"],
-            ["\n#ZLIB_INC = -IC:\projects\zlib", "\nZLIB_INC = -I{}".format(zlib.include_paths[0])],
-            ["\n#ZLIB_LIB = C:\projects\lib\Release\zlib.lib", "\nZLIB_LIB = {}".format(Utility.resolve_file(zlib.lib_paths[0], zlib.libs[0]))],
-            
-            # sqlite
-            ["\n# SQLite Libraries", "\n# SQLite Libraries\nWITH_SQLITE3=ON"],
-            # Uncomment if libSqlite was built with SQLITE_HAS_COLUMN_METADATA=yes
-            #["\n#SQLITE_HAS_COLUMN_METADATA=yes", "\nSQLITE_HAS_COLUMN_METADATA=yes"],
-            ["\n#SQLITE_INC=-IN:\pkg\sqlite-win32", "\nSQLITE_INC = -I{}".format(sqlite.include_paths[0])],
-            ["\n#SQLITE_LIB=N:\pkg\sqlite-win32\sqlite3_i.lib", "\nSQLITE_LIB = {}".format(Utility.resolve_file(sqlite.lib_paths[0], sqlite.libs[0]))]
-        ])
-        
-        # Prevent the GDAL command-line tools from being built (since they don't work nicely with a static build) but ensure their library functions are still built
-        self._replace_multiple("makefile.vc", [
-            
-            # Change the call to build the default target in the apps subdirectory to build just the libraries without the associated executables
-            ["\n\tcd apps\r\n\t$(MAKE) /f makefile.vc\r\n", "\n\tcd apps\r\n\t$(MAKE) /f makefile.vc appslib\r\n"],
-            
-            # Comment out the call to build the install target in the apps subdirectory
-            ["\n\tcd ..\\apps\r\n\t$(MAKE) /f makefile.vc install", "\n\tcd ..\\apps\r\n\techo $(MAKE) /f makefile.vc install"],
-            
-            # Prevent our external dependencies from being bundled into the GDAL static library
-            ["lib /nologo /out:gdal.lib $(LIBOBJ) $(EXTERNAL_LIBS)", "lib /nologo /out:gdal.lib $(LIBOBJ)"]
-            
-        ])
-        
-        # Patch the Visual Studio project file generation script to call the installation target when building the project
-        tools.replace_in_file("generate_vcxproj.bat", "^</NMakeBuildCommandLine^>", " devinstall^</NMakeBuildCommandLine^>")
-        
-        # Generate the Visual Studio project file
-        msvcVersion = int(str(self.settings.compiler.version))
-        self.run("generate_vcxproj.bat {:.1f} {} gdal".format(
-            15 if msvcVersion > 15 else msvcVersion,
-            '64' if self.settings.arch == 'x86_64' else '32'
-        ))
-        
-        # Build the project and install the built files in our package folder
-        msbuild = MSBuild(self)
-        msbuild.build("gdal.vcxproj")
     
+    # This is untested
     def build_unix(self):
         
         # Enable compiler interposition under Linux to enforce the correct flags for libc++
@@ -261,6 +220,17 @@ class GdalUe4Conan(ConanFile):
             autotools.make(args=["-j{}".format(tools.cpu_count())])
             autotools.make(target="install")
     
+    def package(self):
+        cmake = CMake(self)
+        cmake.install()
+
     def package_info(self):
         self.cpp_info.libs = tools.collect_libs(self)
         self.cpp_info.resdirs = ["data"]
+        if self.settings.os == "Windows":
+            sdk_dir = os.environ.get("WindowsSdkDir")
+            if sdk_dir:
+                wbemuuid_path = os.path.join(sdk_dir, "Lib", "um", "x64", "wbemuuid.lib")
+                self.cpp_info.exelinkflags.append(wbemuuid_path)
+            else:
+                self.cpp_info.system_libs.append("wbemuuid.lib")  # Fallback
