@@ -3,7 +3,7 @@ import os
 
 class GeosUe4Conan(ConanFile):
     name = "geos-ue4"
-    version = "3.13.1"
+    version = "3.15.0"
     license = "LGPL-2.1-or-later"
     url = "https://github.com/adamrehn/ue4-conan-recipes/geos-ue4"
     description = "GEOS custom build for Unreal Engine 4"

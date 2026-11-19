@@ -4,7 +4,7 @@ import os
 
 class GdalUe4Conan(ConanFile):
     name = "gdal-ue4"
-    version = "3.10.0"
+    version = "3.13.3"
     license = "MIT"
     url = "https://github.com/adamrehn/ue4-conan-recipes/gdal-ue4"
     description = "GDAL custom build for Unreal Engine 4"
@@ -23,10 +23,10 @@ class GdalUe4Conan(ConanFile):
             tools.replace_in_file(filename, search, replace)
     
     def requirements(self):
-        self.requires("libsqlite3-ue4/3.46.0@adamrehn/{}".format(self.channel))
+        self.requires("libsqlite3-ue4/3.54.1@adamrehn/{}".format(self.channel))
         self.requires("LibTiff/ue4@adamrehn/{}".format(self.channel))
-        self.requires("geos-ue4/3.13.1@adamrehn/{}".format(self.channel))
-        self.requires("proj-ue4/9.5.1@adamrehn/{}".format(self.channel))
+        self.requires("geos-ue4/3.15.0@adamrehn/{}".format(self.channel))
+        self.requires("proj-ue4/9.9.0@adamrehn/{}".format(self.channel))
         self.requires("libcurl/ue4@adamrehn/{}".format(self.channel))
         self.requires("UElibPNG/ue4@adamrehn/{}".format(self.channel))
         self.requires("zlib/ue4@adamrehn/{}".format(self.channel))

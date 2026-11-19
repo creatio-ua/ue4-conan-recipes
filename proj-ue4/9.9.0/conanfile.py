@@ -4,7 +4,7 @@ import string
 
 class ProjUe4Conan(ConanFile):
     name = "proj-ue4"
-    version = "9.5.1"
+    version = "9.9.0"
     license = "MIT"
     url = "https://github.com/adamrehn/ue4-conan-recipes/proj-ue4"
     description = "PROJ custom build for Unreal Engine"

@@ -5,7 +5,7 @@ import re
 
 class libSqlite3Ue4Conan(ConanFile):
     name = "libsqlite3-ue4"
-    version = "3.46.0"
+    version = "3.54.1"
     license = "LGPL-2.1-or-later"
     url = "https://github.com/adamrehn/ue4-conan-recipes/libsqlite3-ue4"
     description = "libSqlite3 custom build for Unreal Engine"
