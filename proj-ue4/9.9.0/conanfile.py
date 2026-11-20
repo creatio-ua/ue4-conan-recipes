@@ -36,7 +36,7 @@ class ProjUe4Conan(ConanFile):
 
     def requirements(self):
         self.requires("libcurl/ue4@adamrehn/{}".format(self.channel))
-        self.requires("libsqlite3-ue4/3.46.0@adamrehn/{}".format(self.channel))
+        self.requires("libsqlite3-ue4/3.54.1@adamrehn/{}".format(self.channel))
         self.requires("LibTiff/ue4@adamrehn/{}".format(self.channel))
 
 
